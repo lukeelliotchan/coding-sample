@@ -7,10 +7,9 @@ set more off
 
 // 0. Set File Directories
 
-global BoC			"~/Desktop/BoC"
-global data			"$BoC/Summer/2_Data"
-global tables		"$BoC/Summer/4_Output/Tables"
-global figures		"$BoC/Summer/4_Output/Figures"
+global data			"../2_Data"
+global tables		"../4_Output/Tables"
+global figures		"../4_Output/Figures"
 
 // 1. Import Datasets
 
