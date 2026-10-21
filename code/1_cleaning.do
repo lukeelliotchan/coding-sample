@@ -1,13 +1,13 @@
 **************************************
 **		01 Cleaning & Merging		**
 **************************************
+
 clear all
 set more off
 
 // 0. Set File Directories
 
-global BoC			"~/Desktop/BoC"
-global data			"$BoC/Summer/2_Data"
+global data			"../2_Data"
 global dta			"$data/dta"
 
 // 1. Import and Clean Datasets
