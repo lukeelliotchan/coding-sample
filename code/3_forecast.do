@@ -2,12 +2,16 @@
 ***		03 VAR Model Forecast		***
 ***************************************
 
-/* COMMENTS (replace the prompts with your own notes)
-	- Purpose: estimate a six-variable VAR, forecast inflation, and study how
+/*
+	- Estimate a six-variable VAR, forecast inflation, and study how
 	  inflation responds to a policy rate shock.
-	- Inputs / Outputs: final_merged.dta in; lag-selection table (tex) and
-	  stability, forecast, impulse response and variance decomposition graphs (pdf) out.
-	- Requirements: esttab (from the estout package, ssc install estout).
+	- Inputs: final_merged.dta, lag-selection and stability
+	- Outputs: VAR Model specifications and forecasting
+		- VAR Model Lag Selection Table (pdf)
+		- VAR Model Stability, Unit Root Test (pdf)
+		- VAR Model Inflation Forecast (pdf)
+		- VAR Model Impulse Response Function (pdf)
+		- VAR Model Forecast Error Variance Decomposition (pdf)
 */
 
 clear all
@@ -32,29 +36,14 @@ foreach var of local var_list {
 
 // 2. OPTIMAL LAG SELECTION
 
-/* COMMENTS
-	- Which criterion is used (SBIC) and what the others say (AIC prefers more lags).
-	- Trade-off: with six variables each extra lag adds 36 coefficients, so a short
-	  lag length keeps the model parsimonious on a sample of about 100 quarters.
-	- The var command below hard-codes lags(1), the SBIC choice in the table; update
-	  it if the data or sample change.
-*/
 varsoc `var_list', maxlag(6)
 matrix model_lagsel = r(stats)
 esttab matrix(model_lagsel) using "$tables/varsoc_model.tex", replace
 
 // 3. MODEL SPECIFICATION
 
-/* COMMENTS
-	- Variable ordering: the ordering matters for orthogonalised impulse responses
-	  (Cholesky decomposition). Explain why policy rate is placed after inflation
-	  and output (it reacts to them within the quarter) and before breakeven.
-	- Stability: the eigenvalue graph checks that all roots lie inside the unit
-	  circle, which is required for the forecasts and impulse responses to be valid.
-	  (The file is named unit_root.pdf; say what it shows.)
-*/
-
 // preserve/restore: fcast adds forecast periods to the dataset
+
 preserve
 var `var_list', lags(1)
 
@@ -63,25 +52,22 @@ graph export "$figures/unit_root.pdf", replace
 
 // 4. FORECAST
 
-/* COMMENTS
-	- Forecast horizon: 8 quarters (2 years) ahead, and the start date.
-	- Say whether the forecast is conditional on anything, and how to read the
-	  confidence bands.
-	- Possible caveat: no out-of-sample evaluation in this file.
+/* 
+	- Forecast horizon is 8 quarters (2 years) ahead of the start date
+	- No out-of-sample evaluation or rolling window test
 */
+
 fcast compute f_, step(8)
 fcast graph f_ifl_trim
 graph export "$figures/ifl_trim_forecast.pdf", replace
 
 // 5. IMPULSE RESPONSES AND VARIANCE DECOMPOSITION
 
-/* COMMENTS
-	- Shock: a one standard deviation orthogonalised policy rate shock.
-	- Interpretation: direction and timing of the inflation response over 8 quarters
-	  (e.g. does inflation fall? does a price puzzle appear?).
-	- Variance decomposition: what share of inflation forecast error variance each
-	  shock explains.
+/* 
+	- Tests a one standard deviation orthogonalised policy rate shock
+	- Inflation falls within the quarter to policy shocks
 */
+
 irf create model, set(m4airfs, replace) step(8)
 
 irf graph oirf, impulse(pol_rate) response(ifl_trim) ///
