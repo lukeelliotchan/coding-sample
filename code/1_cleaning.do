@@ -2,14 +2,16 @@
 **		01 Cleaning & Merging		**
 **************************************
 
-/* COMMENTS (replace the prompts with your own notes)
-	- Purpose: one line on what this file does (turns raw Bank of Canada / Statistics
-	  Canada downloads into one quarterly dataset for the VAR).
-	- Inputs: list the raw csv files and which series (vector IDs) are used.
-	- Outputs: final_merged.dta (one row per quarter, six variables) plus one
-	  intermediate .dta per variable.
-	- Requirements: Stata version, and that the do-file is run from its own folder
-	  (paths are relative).
+/* 
+- This do file cleans, transforms, and merges raw data into a single quartlery data set
+- Inputs: datasets collected from the Bank of Canada or StatsCanada
+	- gdp_growth.csv: Gross domestic product (GDP) at basic prices, by industry, monthly, growth rates - StatsCanada
+	- commodity_index.csv: Bank of Canada Commodity price index, monthly - Bank of Canada
+	- laborforce.csv: Canadian Labour Force Survey seasonally adjusted, monthly - StatsCanada
+	- inflation.csv: Key inflation indicators and the target range, monthly - Bank of Canada
+	- target_policy_rate.csv: Overnight rate target (end of month) and Overnight rate - Bank of Canada
+	- bond_yields_breakeven.csv: Long-term benchmark bond yields and Canadian real return bond yields - Bank of Canada Valet API
+- Outputs: final_merged.dta for testing, analysis, and forecasting
 */
 
 clear all
@@ -22,19 +24,12 @@ global dta			"$data/dta"
 
 // 1. Import and Clean Datasets
 
-/* COMMENTS
-	- Common steps: every series is converted to a quarterly date (qdate) and
-	  collapsed to a quarterly average, so all six series share one frequency.
-	- Units: say why rates are divided by 100 (percent -> decimal).
+/* 
+	- Every series is converted into a quarterly date and collapsed into quarterly averages
+	- Rates are kept in decimla rather than percent for consistency across datasets
 */
 
 // Output Gap //
-/* COMMENTS
-	- Why the gap is estimated (the gap itself is not observed) and why an HP filter
-	  with smoothing 1600 (the standard value for quarterly data).
-	- Mention that the HP filter is two-sided, so the gap is revised as data arrive
-	  and is least reliable at the end of the sample.
-*/
 import delimited "$data/gdp_growth", clear varnames(1)
 keep if vector == "v65201210"
 gen qdate = qofd(dofm(monthly(ref_date, "YM")))
@@ -49,12 +44,6 @@ keep qdate output_gap
 save "$dta/output_gap.dta", replace
 
 // Commodity Prices //
-/* COMMENTS
-	- Which index (Bank of Canada commodity price index, total) and its frequency
-	  (monthly).
-	- Why monthly growth rates are compounded within the quarter to get quarterly
-	  growth, rather than averaging the index level.
-*/
 import delimited "$data/commodity_index", clear varnames(21)
 gen qdate = qofd(date(date, "YMD"))
 format qdate %tq
@@ -67,9 +56,6 @@ keep qdate com_growth
 save "$dta/com_growth.dta", replace
 
 // Unemployment //
-/* COMMENTS
-	- Series used (unemployment rate; seasonally adjusted?) and its source table.
-*/
 import delimited "$data/laborforce", clear varnames(1)
 keep if vector == "v2062815"
 gen qdate = qofd(dofm(monthly(ref_date, "YM")))
@@ -82,10 +68,6 @@ collapse (mean) unemp_rate, by(qdate)
 save "$dta/unemp_rate.dta", replace
 
 // Inflation Rate //
-/* COMMENTS
-	- Why CPI-trim (a core measure that strips out volatile components) and what
-	  the series measures (year-over-year percent change?).
-*/
 import delimited "$data/inflation", clear varnames(1)
 keep if vector == "v108785715"
 gen qdate = qofd(dofm(monthly(ref_date, "YM")))
@@ -98,11 +80,6 @@ collapse (mean) ifl_trim, by(qdate)
 save "$dta/ifl_trim.dta", replace
 
 // Policy Rate //
-/* COMMENTS
-	- Which rate (the Bank of Canada target for the overnight rate) and why the
-	  quarterly mean is used.
-	- Why destring with the force option (non-numeric entries become missing).
-*/
 import delimited "$data/target_policy_rate", clear varnames(9)
 gen qdate = qofd(date(date, "YMD"))
 format qdate %tq
@@ -115,12 +92,6 @@ collapse (mean) pol_rate, by(qdate)
 save "$dta/pol_rate.dta", replace
 
 // Breakeven Inflation //
-/* COMMENTS
-	- Definition: nominal bond yield minus real return bond yield, a market-based
-	  measure of expected inflation.
-	- Why the two yield columns are picked by position (the csv column names are
-	  long and unwieldy).
-*/
 import delimited "$data/bond_yields_breakeven", clear varnames(10)
 gen qdate = qofd(date(date, "YMD"))
 format qdate %tq
@@ -139,13 +110,12 @@ save "$dta/breakeven.dta", replace
 
 // 2. MERGE DATASETS
 
-/* COMMENTS
-	- Merge key: qdate, one observation per quarter in every file (hence 1:1).
-	- Sample window: why 2000q4 to 2026q2 (e.g. first quarter with data for all
+/* 
+	- Merge key: qdate with one observation per quarter in every file
+	- Sample window: from 2000q4 to 2026q2, the first quarter with data for all
 	  six series; last quarter available).
-	- Missing values: note whether any remain after the merge and how they are
-	  handled.
 */
+
 use "$dta/output_gap.dta", clear
 foreach var in com_growth unemp_rate pol_rate ifl_trim breakeven {
 	merge 1:1 qdate using "$dta/`var'.dta", nogenerate
