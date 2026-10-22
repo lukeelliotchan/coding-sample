@@ -1,5 +1,5 @@
 # Content
-The folders include code and output from a simplified VAR Model Forecast for the Bank of Canada Governor's Challenge, a macroeconomic policy challenge
+The folders include code and output from a simplified VAR Model Forecast for the Bank of Canada Governor's Challenge, a macroeconomic policy challenge.
 
 ## Code
 - `1_cleaning.do` - Clean, transform, and merge datasets in preparation for robustness checks and analysis
@@ -9,3 +9,8 @@ The folders include code and output from a simplified VAR Model Forecast for the
 ## Paper
 - `VAR_forecast.pdf` - All output is shown on this document, figures and tables
 - `VAR_forecast.tex` - LaTeX file used to generate the output pdf
+
+## AI Disclaimer
+- The research design, model specification, and analysis are my own
+- Claude was used for [debugging, minor code clean-up, and formatting the do-files]
+- I reviewed the AI-assisted changes and take responsibility for the final code and results
