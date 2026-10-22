@@ -12,5 +12,5 @@ The folders include code and output from a simplified VAR Model Forecast for the
 
 ## AI Disclaimer
 - The research design, model specification, and analysis are my own
-- Claude was used for [debugging, minor code clean-up, and formatting the do-files]
+- Claude was used for debugging, minor code clean-up, and formatting the do-files
 - I reviewed the AI-assisted changes and take responsibility for the final code and results
