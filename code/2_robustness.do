@@ -2,11 +2,13 @@
 ***		02 Data Robustness		***
 ***********************************
 
-/* COMMENTS (replace the prompts with your own notes)
-	- Purpose: check that each series is stationary before it enters the VAR.
-	- Inputs / Outputs: final_merged.dta in; time-series plots (pdf) and lag-selection
-	  and Dickey-Fuller tables (tex) out.
-	- Requirements: esttab (from the estout package, ssc install estout).
+/* 
+	- Check that each series is stationary before it enters the VAR, key assumption
+	- Inputs: final_merged.dat from 1_cleaning.do
+	- Outputs: figures and tables for data robustness
+		- Variable time-series plots (pdf)
+		- Variable lag-selection tables (tex)
+		- Dickey-Fuller test table (tex)
 */
 
 clear all
@@ -26,18 +28,13 @@ local var_list output_gap com_growth unemp_rate ifl_trim pol_rate breakeven
 
 // 2. Stationarity Checks
 
-/* COMMENTS
-	- Why stationarity matters: a VAR in levels needs stationary variables, and
-	  non-stationary series can give spurious relationships.
+/*
+	- Stationarity is necessary for VARs, otherwise you can have spurious results
 	- Procedure per variable: (1) plot the series, (2) choose the lag length by SBIC,
 	  (3) run the augmented Dickey-Fuller test with that many lags, with and without
 	  a trend.
-	- Why SBIC (it penalises extra lags more heavily than AIC, so it picks a
-	  smaller model).
-	- How to read the table: null is a unit root, so a large negative Zt (small
-	  p-value) rejects it. The pvalue column is for the no-trend test.
-	- Results: which series are borderline (e.g. inflation and breakeven fail to
-	  reject at 5%) and what you did about it.
+	- SBIC is used to keep the model parsimonious
+	- Reading output, null is a unit root, so large negative Zt rejects it
 */
 
 matrix dfuller_results = J(1, 5, .)
